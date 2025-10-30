@@ -2,6 +2,8 @@
 
 A minimal backtesting tool that proves I can handle data, APIs, and financial metrics.
 
+---
+
 ## What it does
 - Fetches stock/FX data (yfinance)
 - Runs strategies (SMA crossover, RSI)
@@ -9,13 +11,18 @@ A minimal backtesting tool that proves I can handle data, APIs, and financial me
 - Visualizes results in a small Streamlit app
 - Exposes a clean FastAPI `/backtest` endpoint
 
+---
+
 ## Stack
 - **Backend:** FastAPI, Pydantic
 - **Data/Compute:** pandas, numpy, scipy, yfinance
 - **UI:** Streamlit
-- **Tests:** pytest
+- **Tests:** pytest + GitHub Actions CI
+
+---
 
 ## Run locally
+
 ```bash
 # create venv and install
 python -m venv .venv
@@ -30,13 +37,21 @@ uvicorn backend.main:app --reload
 
 # (new terminal) start dashboard
 streamlit run dashboard/app.py
+```
+---
 
-## Example API request
+### Example API request
+
+```bash
 curl -X POST http://127.0.0.1:8000/backtest \
   -H "Content-Type: application/json" \
   -d '{"symbol":"AAPL","strategy":"sma_crossover","params":{"fast":10,"slow":30,"cost_bps":5}}'
+```
+
+---
 
 ## Project layout
+```bash
 algotrade/
   backend/
     main.py
@@ -48,10 +63,16 @@ algotrade/
       backtester.py
   dashboard/
     app.py
-  tests/              # (to be added)
+  tests/
   requirements.txt
   README.md
+```
+---
 
 ## Notes
-end is exclusive in yfinance. Omit dates to fetch ~5y.
-Optional param: "cost_bps": <int> to model trade costs (bps per entry/exit).
+```bash
+-#end is exclusive in yfinance. Omit dates to fetch ~5y.
+
+-#Optional param: "cost_bps": <int> to model trade costs (bps per entry/exit).
+```
+---
