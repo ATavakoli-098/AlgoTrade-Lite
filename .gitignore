@@ -1,0 +1,30 @@
+# Virtual environment
+.venv/
+venv/
+ENV/
+
+# PyCharm / VSCode
+.idea/
+.vscode/
+
+# Python cache
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Build / logs
+build/
+dist/
+*.log
+
+# OS junk
+.DS_Store
+Thumbs.db
+
+# Streamlit cache
+.streamlit/
+
+# Test artifacts
+.pytest_cache/
+coverage/
