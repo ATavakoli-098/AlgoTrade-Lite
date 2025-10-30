@@ -1,0 +1,17 @@
+# Core dependencies
+fastapi
+uvicorn
+pydantic
+pandas
+numpy
+scipy
+yfinance
+matplotlib
+streamlit
+
+# Testing
+pytest
+httpx
+
+# Optional but useful for numerical stability & plotting
+ta  # (technical analysis library, optional but enhances strategies)
