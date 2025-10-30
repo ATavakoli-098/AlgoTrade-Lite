@@ -11,3 +11,4 @@ streamlit         # optional UI
 
 pytest
 httpx
+pytest-cov
