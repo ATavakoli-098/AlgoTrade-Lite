@@ -1,9 +1,8 @@
-# Virtual environment
+# venv
 .venv/
 venv/
-ENV/
 
-# PyCharm / VSCode
+# IDE
 .idea/
 .vscode/
 
@@ -12,19 +11,17 @@ __pycache__/
 *.pyc
 *.pyo
 *.pyd
+*.log
+.pytest_cache/
 
-# Build / logs
+# Build / dist
 build/
 dist/
-*.log
 
 # OS junk
 .DS_Store
 Thumbs.db
 
-# Streamlit cache
+# Streamlit / cache
 .streamlit/
-
-# Test artifacts
-.pytest_cache/
-coverage/
+.cache/

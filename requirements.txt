@@ -1,4 +1,3 @@
-# Core dependencies
 fastapi
 uvicorn
 pydantic
@@ -6,12 +5,9 @@ pandas
 numpy
 scipy
 yfinance
-matplotlib
-streamlit
+pyarrow           # parquet cache
+matplotlib        # optional, nice for local charts
+streamlit         # optional UI
 
-# Testing
 pytest
 httpx
-
-# Optional but useful for numerical stability & plotting
-ta  # (technical analysis library, optional but enhances strategies)

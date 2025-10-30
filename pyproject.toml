@@ -1,0 +1,21 @@
+[tool.black]
+line-length = 100
+target-version = ["py311"]
+exclude = "/(\\.venv|venv|\\.git|\\.idea|\\.vscode|build|dist|__pycache__)/"
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+select = ["E","F","I","UP","B"]  # basic errors, imports, pyupgrade, bugbear
+ignore = []
+exclude = [".venv","venv","build","dist",".git","__pycache__",".idea",".vscode"]
+
+[tool.ruff.format]
+quote-style = "double"
+
+[tool.isort]
+profile = "black"
+
+[build-system]
+requires = ["setuptools", "wheel"]
+build-backend = "setuptools.build_meta"

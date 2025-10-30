@@ -1,71 +1,83 @@
+from __future__ import annotations
+
+import os
+from datetime import date, timedelta
+from pathlib import Path
+from typing import Optional
+
 import pandas as pd
 import yfinance as yf
-from typing import Optional
-from datetime import date
 
-STD_FIELDS = ["Open", "High", "Low", "Close", "Volume"]
 
-def _force_ohlcv_order(cols_len: int):
-    # yfinance.history default order is: Open, High, Low, Close, Volume, (Dividends, Stock Splits)
-    return STD_FIELDS[: min(cols_len, 5)]
+# ---------------------------------------------------------------------
+# Local cache directory (.cache/)
+CACHE_DIR = Path(".cache")
+CACHE_DIR.mkdir(exist_ok=True)
 
-def _normalize(df: pd.DataFrame, symbol: str) -> pd.DataFrame:
-    if isinstance(df.columns, pd.MultiIndex):
-        # If multiindex, prefer the level that contains OHLC names
-        level0 = set(map(str, df.columns.get_level_values(0)))
-        level1 = set(map(str, df.columns.get_level_values(1)))
-        if set(STD_FIELDS) & level0:
-            df.columns = [str(c).title() for c in df.columns.get_level_values(0)]
-        elif set(STD_FIELDS) & level1:
-            df.columns = [str(c).title() for c in df.columns.get_level_values(1)]
-        else:
-            # fall back to first level
-            df = df.droplevel(0, axis=1)
 
-    # Flatten simple columns
-    df.columns = [str(c).strip().title() for c in df.columns]
+def _cache_path(symbol: str, interval: str) -> Path:
+    """Return path for the symbol's cached parquet file."""
+    fname = f"{symbol.replace('=', '_')}_{interval}.parquet"
+    return CACHE_DIR / fname
 
-    # Edge case: all columns named the ticker (e.g., ['Aapl', 'Aapl', ...])
-    uniq = {c.lower() for c in df.columns}
-    if len(uniq) == 1 and (symbol.lower() in uniq or list(uniq)[0] in {symbol.lower()}):
-        df.columns = _force_ohlcv_order(df.shape[1])
-
-    # If still no Close, try Adj Close, else fail
-    if "Close" not in df.columns:
-        if "Adj Close" in df.columns:
-            df["Close"] = df["Adj Close"]
-        else:
-            raise ValueError(f"Downloaded data has no 'Close' column. Got: {list(df.columns)}")
-
-    # Keep just the standard fields we have
-    keep = [c for c in STD_FIELDS if c in df.columns]
-    df = df[keep].copy()
-    return df.dropna(subset=["Close"])
 
 def fetch_ohlc(
     symbol: str,
     start: Optional[date] = None,
     end: Optional[date] = None,
     interval: str = "1d",
+    force_download: bool = False,
 ) -> pd.DataFrame:
-    tk = yf.Ticker(symbol)
-    if start is None and end is None:
-        # get enough bars for MAs/RSI to actually warm up
-        df = tk.history(period="5y", interval=interval, auto_adjust=True, actions=False)
-    else:
-        df = tk.history(start=start, end=end, interval=interval, auto_adjust=True, actions=False)
+    """
+    Fetch OHLCV data from yfinance and cache it locally in .cache/.
+    """
 
-    if df is None or df.empty:
-        df = yf.download(
-            symbol,
-            start=start,
-            end=end,
-            interval=interval,
-            auto_adjust=True,
-            progress=False,
-            group_by="column",
-        )
-    if df is None or df.empty:
-        raise ValueError(f"No data returned for {symbol}.")
-    return _normalize(df, symbol)
+    cache_file = _cache_path(symbol, interval)
 
+    # Try cache first
+    if cache_file.exists() and not force_download:
+        df = pd.read_parquet(cache_file)
+        if not df.empty:
+            return df
+
+    # Default range: 5 years
+    if start is None or end is None:
+        end = date.today()
+        start = end - timedelta(days=5 * 365)
+
+    data = yf.download(
+        symbol,
+        start=start,
+        end=end,
+        interval=interval,
+        progress=False,
+        auto_adjust=True,
+        threads=True,
+    )
+
+    if data.empty:
+        raise ValueError(f"No data for {symbol} ({start} to {end})")
+
+    # Ensure columns are consistent
+    data = data.rename(columns=str.capitalize)
+    expected = ["Open", "High", "Low", "Close", "Volume"]
+    if not all(col in data.columns for col in expected):
+        raise ValueError(f"Downloaded data missing OHLC columns. Got: {list(data.columns)}")
+
+    # Clean up index
+    data = data.reset_index()
+    if "Date" in data.columns:
+        data = data.rename(columns={"Date": "Datetime"})
+    data["Datetime"] = pd.to_datetime(data["Datetime"])
+    data = data.set_index("Datetime").sort_index()
+
+    # Cache it
+    data.to_parquet(cache_file)
+
+    return data
+
+
+def get_price_series(symbol: str, **kwargs) -> pd.Series:
+    """Shortcut: fetch OHLC and return Close only."""
+    df = fetch_ohlc(symbol, **kwargs)
+    return df["Close"].rename(symbol)

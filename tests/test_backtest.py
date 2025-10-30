@@ -1,20 +1,20 @@
-import pandas as pd
 import numpy as np
-from backend.engine.backtester import run_backtest
+import pandas as pd
+from backend.engine.backtester import simulate_long_only
 
-def toy_prices(n=300, drift=0.0003, vol=0.01, seed=42):
-    rng = np.random.default_rng(seed)
-    rets = rng.normal(drift, vol, n)
-    price = 100 * (1 + pd.Series(rets)).cumprod()
-    return pd.DataFrame({"Close": price})
+def make_df(n=200):
+    idx = pd.date_range("2020-01-01", periods=n, freq="B")
+    price = 100 * (1 + pd.Series(np.random.normal(0.0002, 0.01, n), index=idx)).cumprod()
+    return pd.DataFrame({"Open": price, "Close": price})
 
-def test_sma_runs():
-    df = toy_prices()
-    out = run_backtest(df, "sma_crossover", {"fast": 5, "slow": 20})
-    assert "return_pct" in out.metrics
-    assert out.equity_curve.iloc[-1] > 0
+def test_simulate_long_only_runs():
+    df = make_df()
+    # Flat, then long, then flat to force at least one buy and one sell
+    sig = pd.Series(0, index=df.index)
+    sig.iloc[20:100] = 1
+    out = simulate_long_only(df, sig, cost_bps=5, slippage_bps=2)
 
-def test_rsi_runs():
-    df = toy_prices()
-    out = run_backtest(df, "rsi", {"period": 14, "lower": 30, "upper": 70})
-    assert "sharpe" in out.metrics
+    assert len(out.equity_curve) == len(df)
+    assert isinstance(out.trades, list)
+    sides = {t["side"] for t in out.trades}
+    assert sides >= {"buy", "sell"}
