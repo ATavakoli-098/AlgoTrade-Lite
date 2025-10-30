@@ -2,6 +2,7 @@
 
 ![CI](https://github.com/ATavakoli-098/AlgoTrade-Lite/actions/workflows/ci.yml/badge.svg)
 
+
 > **Status:** MVP complete — FastAPI backend + backtesting engine with tests & CI.
 
 ---
