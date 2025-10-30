@@ -1,6 +1,7 @@
 # AlgoTrade Lite
 
 ![CI](https://github.com/ATavakoli-098/AlgoTrade-Lite/actions/workflows/ci.yml/badge.svg)
+[![codecov](https://codecov.io/gh/ATavakoli-098/AlgoTrade-Lite/branch/main/graph/badge.svg)](https://codecov.io/gh/ATavakoli-098/AlgoTrade-Lite)
 
 
 > **Status:** MVP complete — FastAPI backend + backtesting engine with tests & CI.
