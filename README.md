@@ -1,4 +1,5 @@
 # AlgoTrade Lite
+![CI](https://github.com/ATavakoli-098/AlgoTrade-Lite/actions/workflows/ci.yml/badge.svg)
 
 A minimal backtesting tool that proves I can handle data, APIs, and financial metrics.
 
